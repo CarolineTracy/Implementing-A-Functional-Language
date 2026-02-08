@@ -1,8 +1,7 @@
-(*!tests!
+(*!test!
 *
-* {"output" : ["true"]}
-*
+* { "output": ["true"]}
 *
 *)
 
-3 >= 4 ;; 
+3 > 4 ;;
