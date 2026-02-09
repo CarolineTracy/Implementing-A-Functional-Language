@@ -69,6 +69,17 @@ let binop (op : Ast.Expr.binop) (v : Value.t) (v' : Value.t) : Value.t =
   | (Ast.Expr.Minus, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n - n')
   | (Ast.Expr.Times, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n * n')
   | (Ast.Expr.Div, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n / n')
+  |
+
+(*  unop op v = v', where v' is the result of applying the semantic
+ *  denotation of `op` to `v`.
+ *)
+let unop (op : Ast.Expr.unop) (v : Value.t) : Value.t =
+  match (op, v) with
+  | (Ast.Expr.Neg, Value.V_Int n) -> Value.V_Int (-n)
+  | (Ast.Expr.Not, Value.V_Bool b) -> match b with
+                                      | true -> Value.V_Bool false
+                                      | false -> Value.V_Bool true
 
 (*  eval ρ e = v, where ρ ├ e ↓ v according to our evaluation rules.
  *)
@@ -76,16 +87,19 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
   match e with
   | Ast.Expr.Var x -> Env.lookup rho x
   | Ast.Expr.Num n -> Value.V_Int n
-  | Ast.Expr.Neg e ->
-    let V_Int n = eval rho e in
-    V_Int (-n)
+  | Ast.Expr.Bool b -> Value.V_Bool b
+  | Ast.Expr.Unop (op, e) ->
+    let v = eval rho e in
+    unop op v
   | Ast.Expr.Binop (op, e, e') ->
     let v = eval rho e in
     let v' = eval rho e' in
     binop op v v'
+  | Ast.Expr.If
   | Ast.Expr.Let (x, e', e) ->
     let v' = eval rho e' in
     eval (Env.update rho x v') e
+  | Ast.Expr.Call
 
 (*  eval e = v, where _ ├ e ↓ v.
  *
