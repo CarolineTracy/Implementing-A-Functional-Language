@@ -77,9 +77,12 @@ let binop (op : Ast.Expr.binop) (v : Value.t) (v' : Value.t) : Value.t =
 let unop (op : Ast.Expr.unop) (v : Value.t) : Value.t =
   match (op, v) with
   | (Ast.Expr.Neg, Value.V_Int n) -> Value.V_Int (-n)
-  | (Ast.Expr.Not, Value.V_Bool b) -> match b with
-                                      | true -> Value.V_Bool false
-                                      | false -> Value.V_Bool true
+  | (Ast.Expr.Not, Value.V_Bool b) -> (match b with
+                                       | Value.V_Bool true -> Value.V_Bool false
+                                       | Value.V_Bool false -> Value.V_Bool true
+                                      )
+
+ADD EXCEPTIONS!! NOTE THAT THE SAMPLE CODE DIDN'T INCLUDE EXCEPTIONS SO I HAVE TO ADD THEM MYSELF!! ALSO DO UnboundVariable EXCEPTION FOR MY LOOKUP FUNCTION!!
 
 (*  eval ρ e = v, where ρ ├ e ↓ v according to our evaluation rules.
  *)
@@ -95,11 +98,17 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
     let v = eval rho e in
     let v' = eval rho e' in
     binop op v v'
-  | Ast.Expr.If
+  | Ast.Expr.If (e, e', e'') -> 
+    let v = eval rho e in
+    (match v with
+      | Value.V_Bool true -> eval rho e'
+      | Value.V_Bool false -> eval rho e''
+      | _ -> add! raise
+    )
   | Ast.Expr.Let (x, e', e) ->
     let v' = eval rho e' in
     eval (Env.update rho x v') e
-  | Ast.Expr.Call
+  | Ast.Expr.Call (f, l) ->
 
 (*  eval e = v, where _ ├ e ↓ v.
  *
