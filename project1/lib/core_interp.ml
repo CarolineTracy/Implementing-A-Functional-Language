@@ -63,27 +63,27 @@ end
 (*  binop op v v' = v'', where v'' is the result of applying the semantic
  *  denotation of `op` to `v` and `v''`.
  *)
-let binop (op : E.binop) (v : Value.t) (v' : Value.t) : Value.t =
+let binop (op : Ast.Expr.binop) (v : Value.t) (v' : Value.t) : Value.t =
   match (op, v, v') with
-  | (E.Plus, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n + n')
-  | (E.Minus, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n - n')
-  | (E.Times, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n * n')
-  | (E.Div, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n / n')
+  | (Ast.Expr.Plus, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n + n')
+  | (Ast.Expr.Minus, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n - n')
+  | (Ast.Expr.Times, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n * n')
+  | (Ast.Expr.Div, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n / n')
 
 (*  eval ρ e = v, where ρ ├ e ↓ v according to our evaluation rules.
  *)
-let rec eval (rho : Env.t) (e : E.t) : Value.t =
+let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
   match e with
-  | E.Var x -> Env.lookup rho x
-  | E.Num n -> Value.V_Int n
-  | E.Neg e ->
+  | Ast.Expr.Var x -> Env.lookup rho x
+  | Ast.Expr.Num n -> Value.V_Int n
+  | Ast.Expr.Neg e ->
     let V_Int n = eval rho e in
     V_Int (-n)
-  | E.Binop (op, e, e') ->
+  | Ast.Expr.Binop (op, e, e') ->
     let v = eval rho e in
     let v' = eval rho e' in
     binop op v v'
-  | E.Let (x, e', e) ->
+  | Ast.Expr.Let (x, e', e) ->
     let v' = eval rho e' in
     eval (Env.update rho x v') e
 
@@ -92,7 +92,7 @@ let rec eval (rho : Env.t) (e : E.t) : Value.t =
  *  Because later declarations shadow earlier ones, this is the `eval`
  *  function that is visible to clients.
  *)
-let eval (e : E.t) : Value.t =
+let eval (e : Ast.Expr.t) : Value.t =
   eval Env.empty e
 
 (* exec p = v, where `v` is the result of executing `p`.
