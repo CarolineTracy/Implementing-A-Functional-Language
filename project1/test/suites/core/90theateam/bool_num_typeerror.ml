@@ -1,6 +1,6 @@
 (*!tests!
  *
- * {"output": ["error"]}
+ * {"output": ["TypeError"]}
  *
  *)
 1 && false ;; 
