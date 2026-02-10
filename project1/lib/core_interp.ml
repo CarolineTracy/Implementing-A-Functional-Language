@@ -81,8 +81,11 @@ let unop (op : Ast.Expr.unop) (v : Value.t) : Value.t =
                                        | Value.V_Bool true -> Value.V_Bool false
                                        | Value.V_Bool false -> Value.V_Bool true
                                       )
+  |
 
-ADD EXCEPTIONS!! NOTE THAT THE SAMPLE CODE DIDN'T INCLUDE EXCEPTIONS SO I HAVE TO ADD THEM MYSELF!! ALSO DO UnboundVariable EXCEPTION FOR MY LOOKUP FUNCTION!!
+ADD EXCEPTIONS!! NOTE THAT THE SAMPLE CODE DIDN'T INCLUDE EXCEPTIONS SO I HAVE TO ADD THEM MYSELF!! 
+ALSO DO UnboundVariable EXCEPTION FOR MY LOOKUP FUNCTION!!
+HAVE THE TYPEERROR EXCEPTION HAVE STRINGS
 
 (*  eval ρ e = v, where ρ ├ e ↓ v according to our evaluation rules.
  *)
@@ -109,6 +112,7 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
     let v' = eval rho e' in
     eval (Env.update rho x v') e
   | Ast.Expr.Call (f, l) ->
+    find a way to check the number of arguments. if the number of arguments that its called with is not equal to the number of arguments the function takes, then it raises an error
 
 (*  eval e = v, where _ ├ e ↓ v.
  *
@@ -122,4 +126,4 @@ let eval (e : Ast.Expr.t) : Value.t =
  *)
 let exec (_ : Ast.Script.t) : Value.t =
   failwith "Unimplemented:  Core.Interp.exec"
-
+note: this is a short function
