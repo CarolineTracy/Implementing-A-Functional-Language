@@ -1,6 +1,6 @@
 (*!tests!
  *
- * {"exception" : ["TypeError"]}
+ * {"exception" : ["Typerror"]}
  *
  *
  *)

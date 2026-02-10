@@ -112,7 +112,9 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
     let v' = eval rho e' in
     eval (Env.update rho x v') e
   | Ast.Expr.Call (f, l) ->
+    find f in the global function environment
     find a way to check the number of arguments. if the number of arguments that its called with is not equal to the number of arguments the function takes, then it raises an error
+    steps: evaluate all the arguments in the call expression, then in the functions envrionment bind the arguments to the evaluated values, then compute the functions output
 
 (*  eval e = v, where _ ├ e ↓ v.
  *
@@ -124,6 +126,7 @@ let eval (e : Ast.Expr.t) : Value.t =
 
 (* exec p = v, where `v` is the result of executing `p`.
  *)
-let exec (_ : Ast.Script.t) : Value.t =
+let exec (p : Ast.Script.t) : Value.t =
+
   failwith "Unimplemented:  Core.Interp.exec"
 note: this is a short function
