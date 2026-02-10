@@ -127,6 +127,7 @@ let eval (e : Ast.Expr.t) : Value.t =
 (* exec p = v, where `v` is the result of executing `p`.
  *)
 let exec (p : Ast.Script.t) : Value.t =
+  let (fundef_l, e) = p in
 
   failwith "Unimplemented:  Core.Interp.exec"
 note: this is a short function
