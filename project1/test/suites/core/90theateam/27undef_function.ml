@@ -1,6 +1,6 @@
 (*!tests!
  *
- * {"exception" : ["UndefinedFunction"]}
+ * {"exception" : "UndefinedFunction"}
  *
  *
  *
