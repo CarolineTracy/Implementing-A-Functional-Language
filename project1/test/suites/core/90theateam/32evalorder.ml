@@ -4,6 +4,6 @@
 *
 *
 *)
-let f x = x * 2 in 
-f (3+4) ;; 
+let rec f x = x * 2 ;;
+f (3 + 4) ;; 
 

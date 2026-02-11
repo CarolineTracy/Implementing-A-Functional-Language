@@ -1,13 +1,12 @@
 (*!tests!
 * 
-* {"output": ["11"]}
+* {"output": ["6"]}
 *
 *
 *)
 
-let x = 9 in 
-let rec f y = x + y in 
-let x = 100 in 
-f 2  + (x -100) ;; 
+let x = 5 in 
+let x = x + 1 in 
+x ;; 
 
 

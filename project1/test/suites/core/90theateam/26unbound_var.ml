@@ -1,6 +1,6 @@
 (*!tests!
  *
- * {"exception" : ["Typerror"]}
+ * {"exception" : ["UnboundVariable"]}
  *
  *
  *)

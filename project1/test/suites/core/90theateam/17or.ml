@@ -6,5 +6,5 @@
 *
 *)
 
-true || false
+true || false ;;
 
