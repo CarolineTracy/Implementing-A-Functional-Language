@@ -72,7 +72,7 @@ let binop (op : Ast.Expr.binop) (v : Value.t) (v' : Value.t) : Value.t =
   | (Ast.Expr.Minus, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n - n')
   | (Ast.Expr.Times, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n * n')
   | (Ast.Expr.Div, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n / n')
-  |
+  | DO ALL OF THEM, THERE ARE MORE IN AST
 
 (*  unop op v = v', where v' is the result of applying the semantic
  *  denotation of `op` to `v`.
@@ -114,21 +114,30 @@ let rec eval (fundef_l : Ast.Script.fundef list) (rho : Env.t) (e : Ast.Expr.t) 
   | Ast.Expr.Let (x, e', e) ->
     let v' = eval rho e' in
     eval (Env.update rho x v') e
-  | Ast.Expr.Call (f, l) ->
+  | Ast.Expr.Call (f, call_l) ->
     let find_f_func = (fun f_def -> match f_def with | (f, _, _) -> true | _ -> false) in
     (match (List.find_opt find_f_func fundef_l) with
     | Some Ast.Script.fundef f_def -> 
       let (f', param_l, e') = f_def in
-      (match (List.length l) = (List.length param_l) with
+      (match ((List.length call_l) = (List.length param_l)) with
       | Value.V_Bool true -> 
+        let param_call_combo = 
+        (match 
+        )
         
-      | Value.V_Bool false -> 
-      )
+        x = 5
+        f x y = x+y
+        f 5 1
 
+        add to envrionment as they go
+
+      | Value.V_Bool false -> raise(TypeError "Function called with wrong number of arguments.")
+      )
     | None -> raise(UndefinedFunction f)
     )
 
-
+      make new envrionment which is combo of exisitn envrionment and added evaluations of parameters
+      for each elem in call_l: evaluate it, then add it to the envrionment
       find a way to check the number of arguments. if the number of arguments that its called with is not equal to the number of arguments the function takes, then it raises an error
       steps: use the envrionment to evaluate all the arguments in the call expression and in the function's envrionment bind the arguments to the evaluated values, then compute the functions output
 
