@@ -120,15 +120,15 @@ let rec eval (fundef_l : Ast.Script.fundef list) (rho : Env.t) (e : Ast.Expr.t) 
     let v' = eval fundef_l rho e' in
     eval fundef_l (Env.update rho x v') e
   | Ast.Expr.Call (f, call_l) ->
-    let find_f_func = (fun f_def -> match f_def with | (f, _, _) -> true | _ -> false) in
+    let find_f_func = (fun f_def -> let (f', _, _) = f_def in (f' = f)) in
     (match (List.find_opt find_f_func fundef_l) with
-    | Some Ast.Script.fundef f_def -> 
-      let (f', param_l, e') = f_def in
+    | Some f_def -> 
+      let (_, param_l, e') = f_def in
       (match ((List.length param_l) = (List.length call_l)) with
-      | Value.V_Bool true -> 
+      | true -> 
         let fold_func = (fun curr_env param' call' -> let v = eval fundef_l curr_env call' in Env.update curr_env param' v) in
-        fold_left2 fold_func rho param_l call_l
-      | Value.V_Bool false -> raise(TypeError "Function called with wrong number of arguments.")
+        eval fundef_l (List.fold_left2 fold_func rho param_l call_l) e'
+      | false -> raise(TypeError "Function called with the wrong number of arguments.")
       )
     | None -> raise(UndefinedFunction f)
     )
@@ -138,13 +138,11 @@ let rec eval (fundef_l : Ast.Script.fundef list) (rho : Env.t) (e : Ast.Expr.t) 
  *  Because later declarations shadow earlier ones, this is the `eval`
  *  function that is visible to clients.
  *)
-let eval (e : Ast.Expr.t) : Value.t =
-  eval Env.empty e
+let eval (fundef_l : Ast.Script.fundef list) (e : Ast.Expr.t) : Value.t =
+  eval fundef_l Env.empty e
 
 (* exec p = v, where `v` is the result of executing `p`.
  *)
 let exec (p : Ast.Script.t) : Value.t =
-  let (fundef_l, e) = p in
-
-  failwith "Unimplemented:  Core.Interp.exec"
-note: this is a short function
+  match p with
+  | Ast.Script.Pgm (fundef_l, e) -> eval fundef_l e
