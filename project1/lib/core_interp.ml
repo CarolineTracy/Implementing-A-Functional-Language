@@ -128,11 +128,6 @@ let rec eval (fundef_l : Ast.Script.fundef list) (rho : Env.t) (e : Ast.Expr.t) 
     | None -> raise(UndefinedFunction f)
     )
 
-      make new envrionment which is combo of exisitn envrionment and added evaluations of parameters
-      for each elem in call_l: evaluate it, then add it to the envrionment
-      find a way to check the number of arguments. if the number of arguments that its called with is not equal to the number of arguments the function takes, then it raises an error
-      steps: use the envrionment to evaluate all the arguments in the call expression and in the function's envrionment bind the arguments to the evaluated values, then compute the functions output
-
 (*  eval e = v, where _ ├ e ↓ v.
  *
  *  Because later declarations shadow earlier ones, this is the `eval`
