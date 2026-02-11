@@ -49,16 +49,20 @@ module Env = struct
    *)
   let empty : t = []
 
+  (*  If x is in ρ, lookup ρ x = ρ(x). If x is not in ρ, lookup ρ x raises an UnboundVariable error.
+   *)
+  let lookup (rho : t) (x : Ast.Id.t) : Value.t = 
+    match (List.assoc_opt x rho) with
+    | Some Value.V_Bool b -> Value.V_Bool b
+    | Some Value.V_Int n -> Value.V_Int n
+    | None -> raise(UnboundVariable x)
+
+  (*  update ρ x v = ρ{x → v}.
+   *)
+  let update (rho : t) (x : Ast.Id.t) (v : Value.t) : t =
+    (x, v) :: List.remove_assoc x rho
 end
 
-<<<<<<< HEAD
-
-(* exec p = v, where `v` is the result of executing `p`.
- *)
-let exec (_ : Ast.Script.t) : Value.t =
-  failwith "Unimplemented:  Core.Interp.exec"
-
-=======
 (*  binop op v v' = v'', where v'' is the result of applying the semantic
  *  denotation of `op` to `v` and `v''`.
  *)
@@ -142,4 +146,3 @@ let eval (fundef_l : Ast.Script.fundef list) (e : Ast.Expr.t) : Value.t =
 let exec (p : Ast.Script.t) : Value.t =
   match p with
   | Ast.Script.Pgm (fundef_l, e) -> eval fundef_l e
->>>>>>> 0fab27c9b132d6d1f19ea9fa686587fc9948b787
