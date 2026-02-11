@@ -49,10 +49,12 @@ module Env = struct
    *)
   let empty : t = []
 
-  (*  lookup ρ x = ρ(x).
+  (*  If x is in ρ, lookup ρ x = ρ(x). If x is not in ρ, lookup ρ x raises an UnboundVariable error.
    *)
   let lookup (rho : t) (x : Ast.Id.t) : Value.t = 
-    List.assoc x rho
+    match (List.assoc_opt x rho) with
+    | Some x' -> x'
+    | None -> raise(UnboundVariable x)
 
   (*  update ρ x v = ρ{x → v}.
    *)
@@ -84,14 +86,16 @@ let unop (op : Ast.Expr.unop) (v : Value.t) : Value.t =
   |
 
 ADD EXCEPTIONS!! NOTE THAT THE SAMPLE CODE DIDN'T INCLUDE EXCEPTIONS SO I HAVE TO ADD THEM MYSELF!! 
-ALSO DO UnboundVariable EXCEPTION FOR MY LOOKUP FUNCTION!!
 HAVE THE TYPEERROR EXCEPTION HAVE STRINGS
 
-(*  eval ρ e = v, where ρ ├ e ↓ v according to our evaluation rules.
+(*  eval fundef_l ρ e = v, where ρ ├ e ↓ v according to our evaluation rules. fundef_l is a list of 
+    all the function definitions in the script, while e is the expression in the script.
  *)
-let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
+let rec eval (fundef_l : Ast.Script.fundef list) (rho : Env.t) (e : Ast.Expr.t) : Value.t =
   match e with
-  | Ast.Expr.Var x -> Env.lookup rho x
+  | Ast.Expr.Var x -> 
+    match (Env.lookup rho x) with
+    
   | Ast.Expr.Num n -> Value.V_Int n
   | Ast.Expr.Bool b -> Value.V_Bool b
   | Ast.Expr.Unop (op, e) ->
@@ -106,12 +110,13 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
     (match v with
       | Value.V_Bool true -> eval rho e'
       | Value.V_Bool false -> eval rho e''
-      | _ -> add! raise
+      | _ -> raise(TypeError "Expected a bool. Did not receive a bool.")
     )
   | Ast.Expr.Let (x, e', e) ->
     let v' = eval rho e' in
     eval (Env.update rho x v') e
   | Ast.Expr.Call (f, l) ->
+    
       find a way to check the number of arguments. if the number of arguments that its called with is not equal to the number of arguments the function takes, then it raises an error
       find f in the global function environment (which should probably just be a list, which is passed as a parameter to rec eval)
       steps: evaluate all the arguments in the call expression and in the function's envrionment bind the arguments to the evaluated values, then compute the functions output
