@@ -133,10 +133,6 @@ let rec eval (fundef_l : Ast.Script.fundef list) (rho : Env.t) (e : Ast.Expr.t) 
     | None -> raise(UndefinedFunction f)
     )
 
-TESTS TO ADD:
-let a = 3 in let y = a + 1 in let a = 7 in y (Evaluates to 4)
-let a = 3 in let f = fun x → x + a in let a = 7 in f 1 (Evaluates to 4)
-
 (*  eval e = v, where _ ├ e ↓ v.
  *
  *  Because later declarations shadow earlier ones, this is the `eval`
