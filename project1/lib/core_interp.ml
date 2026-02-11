@@ -49,51 +49,8 @@ module Env = struct
    *)
   let empty : t = []
 
-  (*  lookup ρ x = ρ(x).
-   *)
-  let lookup (rho : t) (x : Ast.Id.t) : Value.t = 
-    List.assoc x rho
-
-  (*  update ρ x v = ρ{x → v}.
-   *)
-  let update (rho : t) (x : Ast.Id.t) (v : Value.t) : t =
-    (x, v) :: List.remove_assoc x rho
 end
 
-(*  binop op v v' = v'', where v'' is the result of applying the semantic
- *  denotation of `op` to `v` and `v''`.
- *)
-let binop (op : Ast.Expr.binop) (v : Value.t) (v' : Value.t) : Value.t =
-  match (op, v, v') with
-  | (Ast.Expr.Plus, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n + n')
-  | (Ast.Expr.Minus, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n - n')
-  | (Ast.Expr.Times, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n * n')
-  | (Ast.Expr.Div, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n / n')
-
-(*  eval ρ e = v, where ρ ├ e ↓ v according to our evaluation rules.
- *)
-let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
-  match e with
-  | Ast.Expr.Var x -> Env.lookup rho x
-  | Ast.Expr.Num n -> Value.V_Int n
-  | Ast.Expr.Neg e ->
-    let V_Int n = eval rho e in
-    V_Int (-n)
-  | Ast.Expr.Binop (op, e, e') ->
-    let v = eval rho e in
-    let v' = eval rho e' in
-    binop op v v'
-  | Ast.Expr.Let (x, e', e) ->
-    let v' = eval rho e' in
-    eval (Env.update rho x v') e
-
-(*  eval e = v, where _ ├ e ↓ v.
- *
- *  Because later declarations shadow earlier ones, this is the `eval`
- *  function that is visible to clients.
- *)
-let eval (e : Ast.Expr.t) : Value.t =
-  eval Env.empty e
 
 (* exec p = v, where `v` is the result of executing `p`.
  *)
