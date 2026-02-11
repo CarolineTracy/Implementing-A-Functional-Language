@@ -63,6 +63,7 @@ module Env = struct
     (x, v) :: List.remove_assoc x rho
 end
 
+(*
 (*  binop op v v' = v'', where v'' is the result of applying the semantic
  *  denotation of `op` to `v` and `v''`.
  *)
@@ -146,3 +147,4 @@ let eval (fundef_l : Ast.Script.fundef list) (e : Ast.Expr.t) : Value.t =
 let exec (p : Ast.Script.t) : Value.t =
   match p with
   | Ast.Script.Pgm (fundef_l, e) -> eval fundef_l e
+*)
