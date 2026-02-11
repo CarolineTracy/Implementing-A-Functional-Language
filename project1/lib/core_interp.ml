@@ -72,7 +72,18 @@ let binop (op : Ast.Expr.binop) (v : Value.t) (v' : Value.t) : Value.t =
   | (Ast.Expr.Minus, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n - n')
   | (Ast.Expr.Times, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n * n')
   | (Ast.Expr.Div, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n / n')
-  | DO ALL OF THEM, THERE ARE MORE IN AST
+  | (Ast.Expr.Mod, Value.V_Int n, Value.V_Int n') -> Value.V_Int (n mod n')
+  | (Ast.Expr.And, Value.V_Bool b, Value.V_Bool b') -> Value.V_Bool (b && b')
+  | (Ast.Expr.Or, Value.V_Bool b, Value.V_Bool b') -> Value.V_Bool (b || b')
+  | (Ast.Expr.Eq, Value.V_Int n, Value.V_Int n') -> Value.V_Bool (n = n')
+  | (Ast.Expr.Eq, Value.V_Bool b, Value.V_Bool b') -> Value.V_Bool (b = b')
+  | (Ast.Expr.Ne, Value.V_Int n, Value.V_Int n') -> Value.V_Bool (n != n')
+  | (Ast.Expr.Ne, Value.V_Bool b, Value.V_Bool b') -> Value.V_Bool (b != b')
+  | (Ast.Expr.Lt, Value.V_Int n, Value.V_Int n') -> Value.V_Bool (n < n')
+  | (Ast.Expr.Le, Value.V_Int n, Value.V_Int n') -> Value.V_Bool (n <= n')
+  | (Ast.Expr.Gt, Value.V_Int n, Value.V_Int n') -> Value.V_Bool (n > n')
+  | (Ast.Expr.Ge, Value.V_Int n, Value.V_Int n') -> Value.V_Bool (n >= n')
+  | _ -> raise(TypeError "Binary operation (binop) applied to operands of the incorrect type.")
 
 (*  unop op v = v', where v' is the result of applying the semantic
  *  denotation of `op` to `v`.
@@ -80,14 +91,8 @@ let binop (op : Ast.Expr.binop) (v : Value.t) (v' : Value.t) : Value.t =
 let unop (op : Ast.Expr.unop) (v : Value.t) : Value.t =
   match (op, v) with
   | (Ast.Expr.Neg, Value.V_Int n) -> Value.V_Int (-n)
-  | (Ast.Expr.Not, Value.V_Bool b) -> (match b with
-                                       | Value.V_Bool true -> Value.V_Bool false
-                                       | Value.V_Bool false -> Value.V_Bool true
-                                      )
-  |
-
-ADD EXCEPTIONS!! NOTE THAT THE SAMPLE CODE DIDN'T INCLUDE EXCEPTIONS SO I HAVE TO ADD THEM MYSELF!! 
-HAVE THE TYPEERROR EXCEPTION HAVE STRINGS
+  | (Ast.Expr.Not, Value.V_Bool b) -> Value.V_Bool (not b)
+  | _ -> raise(TypeError "Unary operation (unop) applied to operand of the incorrect type.")
 
 (*  eval fundef_l ρ e = v, where ρ ├ e ↓ v according to our evaluation rules. fundef_l is a list of 
     all the function definitions in the script, while e is the expression in the script.
@@ -98,22 +103,22 @@ let rec eval (fundef_l : Ast.Script.fundef list) (rho : Env.t) (e : Ast.Expr.t) 
   | Ast.Expr.Num n -> Value.V_Int n
   | Ast.Expr.Bool b -> Value.V_Bool b
   | Ast.Expr.Unop (op, e) ->
-    let v = eval rho e in
+    let v = eval fundef_l rho e in
     unop op v
   | Ast.Expr.Binop (op, e, e') ->
-    let v = eval rho e in
-    let v' = eval rho e' in
+    let v = eval fundef_l rho e in
+    let v' = eval fundef_l rho e' in
     binop op v v'
   | Ast.Expr.If (e, e', e'') -> 
-    let v = eval rho e in
+    let v = eval fundef_l rho e in
     (match v with
-      | Value.V_Bool true -> eval rho e'
-      | Value.V_Bool false -> eval rho e''
+      | Value.V_Bool true -> eval fundef_l rho e'
+      | Value.V_Bool false -> eval fundef_l rho e''
       | _ -> raise(TypeError "Expected a bool. Did not receive a bool.")
     )
   | Ast.Expr.Let (x, e', e) ->
-    let v' = eval rho e' in
-    eval (Env.update rho x v') e
+    let v' = eval fundef_l rho e' in
+    eval fundef_l (Env.update rho x v') e
   | Ast.Expr.Call (f, call_l) ->
     let find_f_func = (fun f_def -> match f_def with | (f, _, _) -> true | _ -> false) in
     (match (List.find_opt find_f_func fundef_l) with
