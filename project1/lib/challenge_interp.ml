@@ -33,6 +33,7 @@ module Value = struct
     match v with
     | V_Int n -> Int.to_string n
     | V_Bool b -> Bool.to_string b
+    ADD ANOTHER CLAUSE FOR FUNC. JUST PRINT OUT THE WORD "FUNCTION" (BY DANNER)
 end
 
 (* Environments.  An environment is a finite map from identifiers to values.
@@ -149,6 +150,11 @@ let rec eval (fundef_l : Ast.Script.fundef list) (rho : Env.t) (e : Ast.Expr.t) 
       )
     | None -> raise(UndefinedFunction f)
     )
+  | Ast.Expr.Fun ADD
+
+  DO STEPS IN THE DOC
+  IMPLEMENT STATIC SCOPING?!?! (Email from Danner)
+  CHECK IF WE SHOULD HAVE IMPLEMENTED STATIC SCOPING IN CORE (Email from Danner)
 
 (*  eval e = v, where _ ├ e ↓ v.
  *
