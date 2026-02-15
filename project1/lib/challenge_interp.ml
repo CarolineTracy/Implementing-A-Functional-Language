@@ -145,7 +145,7 @@ let rec eval (fundef_l : Ast.Script.fundef list) (rho : Env.t) (e : Ast.Expr.t) 
       (match ((List.length param_l) = (List.length call_l)) with
       | true -> 
         let fold_func = (fun curr_env param' call' -> let v = eval fundef_l curr_env call' in Env.update curr_env param' v) in
-        eval fundef_l (List.fold_left2 fold_func rho param_l call_l) e'
+        eval fundef_l (List.fold_left2 fold_func Env.empty param_l call_l) e'
       | false -> raise(TypeError "Function called with the wrong number of arguments.")
       )
     | None -> raise(UndefinedFunction f)
