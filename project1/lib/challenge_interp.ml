@@ -180,15 +180,14 @@ let eval (func_env : Env.t) (e : Ast.Expr.t) : Value.t =
 (* exec p = v, where `v` is the result of executing `p`.
  *)
 let exec (p : Ast.Script.t) : Value.t =
-  match p with
-  | Ast.Script.Pgm (fundef_l, e) -> 
-    let map_func = (fun fundef0 -> let (name0, param_l0, e0) = fundef in (name0, (param_l0, e0, Env.empty))) in
-    let fundef_l_mapped = List.map map_func fundef_l in
-    let func_env = Env.from_list fundef_l_mapped in
-    eval func_env e
+  let Pgm (fundef_l, e) = p in
+  let map_func = (fun fundef0 -> let (name0, param_l0, e0) = fundef in (name0, (param_l0, e0, Env.empty))) in
+  let fundef_l_mapped = List.map map_func fundef_l in
+  let func_env = Env.from_list fundef_l_mapped in
+  eval func_env e
     
 
-    DOES from_list DO A GOOD JOB OF CREATING AN ENVRIONMENT WITH ONLY THE FUNCTION DEFINITIONS?
+  DOES from_list DO A GOOD JOB OF CREATING AN ENVRIONMENT WITH ONLY THE FUNCTION DEFINITIONS?
 
 
 

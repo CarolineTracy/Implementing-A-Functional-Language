@@ -99,7 +99,7 @@ let unop (op : Ast.Expr.unop) (v : Value.t) : Value.t =
   | _ -> raise(TypeError "Unary operation (unop) applied to operand of the incorrect type.")
 
 (*  eval fundef_l ρ e = v, where ρ ├ e ↓ v according to our evaluation rules. fundef_l is a list of 
-    all the function definitions in the script, while e is the expression in the script.
+ *  all the function definitions in the script, while e is the expression in the script.
  *)
 let rec eval (fundef_l : Ast.Script.fundef list) (rho : Env.t) (e : Ast.Expr.t) : Value.t =
   match e with
@@ -137,7 +137,8 @@ let rec eval (fundef_l : Ast.Script.fundef list) (rho : Env.t) (e : Ast.Expr.t) 
     | None -> raise(UndefinedFunction f)
     )
 
-(*  eval e = v, where _ ├ e ↓ v.
+(*  eval fundef_l e = v, where _ ├ e ↓ v. fundef_l is a list of all the 
+ *  function definitions in the script, while e is the expression in the script.
  *
  *  Because later declarations shadow earlier ones, this is the `eval`
  *  function that is visible to clients.
