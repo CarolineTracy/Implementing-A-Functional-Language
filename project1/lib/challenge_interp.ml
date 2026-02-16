@@ -151,8 +151,7 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
         let fold_func = (fun curr_env param' call' -> let v = eval fundef_l curr_env call' in Env.update curr_env param' v) in
         eval fundef_l (List.fold_left2 fold_func Env.empty param_l call_l) e'
       | false -> raise(TypeError "Function called with the wrong number of arguments.")
-      MAYBE EDIT THIS FALSE CASE WHEN I HAVE TOO MANY OR NOT ENOUGH PARAMS. MAYBE INSTEAD OF DOING match ((List.length param_l) = (List.length call_l))
-      YOU CAN JUST GET THE RIGHT NUMBER OF ARGS?
+      BASICALLY DELETE THE STUFF ABOVE
       NOTE THAT CALL IS JUST FOR NON-ANONYMOUS FUNCTIONS
       Maybe when a function is fully evaluated, its environment (that records the values bound to the parameters so far) goes back to empty
       MAYBE I SHOULD EVALUATE IT LIKE THIS: f 3 4 5 6 IS ((((f 3) 4) 5) 6). SO LIKE EVALUATE IT ONE BY ONE. 
@@ -162,6 +161,7 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
   | Ast.Expr.Fun (param_l, e) ->
     PROBABLY WILL BE SIMILAR TO CALL EXPRESSIONS?
     NOTE THAT E IS BODY
+    FOR ANONYMOUS FUNCTIONS: SINCE THESE CAN BE DECLARED IN THE EXPRESSION PART OF THE SCRIPT, 
     Maybe when a function is fully evaluated, its environment (that records the values bound to the parameters so far) goes back to empty
   
   
