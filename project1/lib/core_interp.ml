@@ -80,9 +80,13 @@ let binop (op : Ast.Expr.binop) (v : Value.t) (v' : Value.t) : Value.t =
   | (Ast.Expr.Ne, Value.V_Int n, Value.V_Int n') -> Value.V_Bool (n != n')
   | (Ast.Expr.Ne, Value.V_Bool b, Value.V_Bool b') -> Value.V_Bool (b != b')
   | (Ast.Expr.Lt, Value.V_Int n, Value.V_Int n') -> Value.V_Bool (n < n')
+  | (Ast.Expr.Lt, Value.V_Bool b, Value.V_Bool b') -> Value.V_Bool (b < b')
   | (Ast.Expr.Le, Value.V_Int n, Value.V_Int n') -> Value.V_Bool (n <= n')
+  | (Ast.Expr.Le, Value.V_Bool b, Value.V_Bool b') -> Value.V_Bool (b <= b')
   | (Ast.Expr.Gt, Value.V_Int n, Value.V_Int n') -> Value.V_Bool (n > n')
+  | (Ast.Expr.Gt, Value.V_Bool b, Value.V_Bool b') -> Value.V_Bool (b > b')
   | (Ast.Expr.Ge, Value.V_Int n, Value.V_Int n') -> Value.V_Bool (n >= n')
+  | (Ast.Expr.Ge, Value.V_Bool b, Value.V_Bool b') -> Value.V_Bool (b >= b')
   | _ -> raise(TypeError "Binary operation (binop) applied to operands of the incorrect type.")
 
 (*  unop op v = v', where v' is the result of applying the semantic

@@ -98,9 +98,13 @@ let binop (op : Ast.Expr.binop) (v : Value.t) (v' : Value.t) : Value.t =
   | (Ast.Expr.Ne, Value.V_Int n, Value.V_Int n') -> Value.V_Bool (n != n')
   | (Ast.Expr.Ne, Value.V_Bool b, Value.V_Bool b') -> Value.V_Bool (b != b')
   | (Ast.Expr.Lt, Value.V_Int n, Value.V_Int n') -> Value.V_Bool (n < n')
+  | (Ast.Expr.Lt, Value.V_Bool b, Value.V_Bool b') -> Value.V_Bool (b < b')
   | (Ast.Expr.Le, Value.V_Int n, Value.V_Int n') -> Value.V_Bool (n <= n')
+  | (Ast.Expr.Le, Value.V_Bool b, Value.V_Bool b') -> Value.V_Bool (b <= b')
   | (Ast.Expr.Gt, Value.V_Int n, Value.V_Int n') -> Value.V_Bool (n > n')
+  | (Ast.Expr.Gt, Value.V_Bool b, Value.V_Bool b') -> Value.V_Bool (b > b')
   | (Ast.Expr.Ge, Value.V_Int n, Value.V_Int n') -> Value.V_Bool (n >= n')
+  | (Ast.Expr.Ge, Value.V_Bool b, Value.V_Bool b') -> Value.V_Bool (b >= b')
   | _ -> raise(TypeError "Binary operation (binop) applied to operands of the incorrect type.")
 
 (*  unop op v = v', where v' is the result of applying the semantic
@@ -153,8 +157,7 @@ let rec eval (fundef_l : Ast.Script.fundef list) (rho : Env.t) (e : Ast.Expr.t) 
   | Ast.Expr.Fun ADD
 
   DO STEPS IN THE DOC
-  IMPLEMENT STATIC SCOPING?!?! (Email from Danner)
-  CHECK IF WE SHOULD HAVE IMPLEMENTED STATIC SCOPING IN CORE (Email from Danner)
+  In the challenge interpreter, you can keep function definitions as parts of the environment, as opposed to doing fundef_l like I did in the core problem (that’s one way to do the challenge problem)
 
 (*  eval e = v, where _ ├ e ↓ v.
  *
@@ -172,4 +175,5 @@ let exec (p : Ast.Script.t) : Value.t =
 
 (*TESTS TO ADD:
 let a = 3 in let y = a + 1 in let a = 7 in y (Evaluates to 4)
-let a = 3 in let f = fun x → x + a in let a = 7 in f 1 (Evaluates to 4)*)
+let a = 3 in let f = fun x → x + a in let a = 7 in f 1 (Evaluates to 4)
+let f = fun x -> x + a in let a = 7 in f 1 (Evaluates to UnboundVariable bc of a)*)
