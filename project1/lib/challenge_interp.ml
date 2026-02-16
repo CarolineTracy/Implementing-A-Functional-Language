@@ -25,7 +25,6 @@ module Value = struct
     | V_Int of int
     | V_Bool of bool
     | V_Fun of Ast.Id.t list * Ast.Expr.t * Env.t
-    SHOULD I HAVE Ast.Id.t AT THE BEGINNING (FOR NAME OF FUNCTION)?
     [@@deriving show]
 
   (* to_string v = a string representation of v (more human-readable than
@@ -35,7 +34,7 @@ module Value = struct
     match v with
     | V_Int n -> Int.to_string n
     | V_Bool b -> Bool.to_string b
-    | V_Fun fun_def -> "function"
+    | V_Fun (param_l e rho) -> "function"
 end
 
 (* Environments.  An environment is a finite map from identifiers to values.
@@ -156,6 +155,7 @@ let rec eval (fundef_l : Ast.Script.fundef list) (rho : Env.t) (e : Ast.Expr.t) 
       MAYBE EDIT THIS FALSE CASE WHEN I HAVE TOO MANY OR NOT ENOUGH PARAMS. MAYBE INSTEAD OF DOING match ((List.length param_l) = (List.length call_l))
       YOU CAN JUST GET THE RIGHT NUMBER OF ARGS?
       NOTE THAT CALL IS JUST FOR NON-ANONYMOUS FUNCTIONS
+      Maybe when a function is fully evaluated, its environment (that records the values bound to the parameters so far) goes back to empty
       MAYBE I SHOULD EVALUATE IT LIKE THIS: f 3 4 5 6 IS ((((f 3) 4) 5) 6). SO LIKE EVALUATE IT ONE BY ONE. 
       )
     | None -> raise(UndefinedFunction f)
@@ -163,8 +163,9 @@ let rec eval (fundef_l : Ast.Script.fundef list) (rho : Env.t) (e : Ast.Expr.t) 
   | Ast.Expr.Fun (param_l, e) ->
     PROBABLY WILL BE SIMILAR TO CALL EXPRESSIONS?
     NOTE THAT E IS BODY
+    Maybe when a function is fully evaluated, its environment (that records the values bound to the parameters so far) goes back to empty
   
-
+  
   DO STEPS IN THE DOC
   In the challenge interpreter, you can keep function definitions as parts of the environment, as opposed to doing fundef_l like I did in the core problem (that’s one way to do the challenge problem)
 
@@ -173,14 +174,21 @@ let rec eval (fundef_l : Ast.Script.fundef list) (rho : Env.t) (e : Ast.Expr.t) 
  *  Because later declarations shadow earlier ones, this is the `eval`
  *  function that is visible to clients.
  *)
-let eval (fundef_l : Ast.Script.fundef list) (e : Ast.Expr.t) : Value.t =
-  eval fundef_l Env.empty e
+let eval (func_env : Env.t) (e : Ast.Expr.t) : Value.t =
+  eval func_env e
 
 (* exec p = v, where `v` is the result of executing `p`.
  *)
 let exec (p : Ast.Script.t) : Value.t =
   match p with
-  | Ast.Script.Pgm (fundef_l, e) -> eval fundef_l e
+  | Ast.Script.Pgm (fundef_l, e) -> 
+    let map_func = (fun fundef0 -> let (name0, param_l0, e0) = fundef in (name0, (param_l0, e0, Env.empty))) in
+    let fundef_l_mapped = List.map map_func fundef_l in
+    let func_env = Env.from_list fundef_l_mapped in
+    eval func_env e
+    
+
+    DOES from_list DO A GOOD JOB OF CREATING AN ENVRIONMENT WITH ONLY THE FUNCTION DEFINITIONS?
 
 
 
