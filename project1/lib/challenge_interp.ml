@@ -117,31 +117,30 @@ let unop (op : Ast.Expr.unop) (v : Value.t) : Value.t =
   | (Ast.Expr.Not, Value.V_Bool b) -> Value.V_Bool (not b)
   | _ -> raise(TypeError "Unary operation (unop) applied to operand of the incorrect type.")
 
-(*  eval fundef_l ρ e = v, where ρ ├ e ↓ v according to our evaluation rules. fundef_l is a list of 
-    all the function definitions in the script, while e is the expression in the script.
+(*  eval ρ e = v, where ρ ├ e ↓ v according to our evaluation rules. 
  *)
-let rec eval (fundef_l : Ast.Script.fundef list) (rho : Env.t) (e : Ast.Expr.t) : Value.t =
+let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
   match e with
   | Ast.Expr.Var x -> Env.lookup rho x
   | Ast.Expr.Num n -> Value.V_Int n
   | Ast.Expr.Bool b -> Value.V_Bool b
   | Ast.Expr.Unop (op, e) ->
-    let v = eval fundef_l rho e in
+    let v = eval rho e in
     unop op v
   | Ast.Expr.Binop (op, e, e') ->
-    let v = eval fundef_l rho e in
-    let v' = eval fundef_l rho e' in
+    let v = eval rho e in
+    let v' = eval rho e' in
     binop op v v'
   | Ast.Expr.If (e, e', e'') -> 
-    let v = eval fundef_l rho e in
+    let v = eval rho e in
     (match v with
-      | Value.V_Bool true -> eval fundef_l rho e'
-      | Value.V_Bool false -> eval fundef_l rho e''
+      | Value.V_Bool true -> eval rho e'
+      | Value.V_Bool false -> eval rho e''
       | _ -> raise(TypeError "Expected a bool. Did not receive a bool.")
     )
   | Ast.Expr.Let (x, e', e) ->
-    let v' = eval fundef_l rho e' in
-    eval fundef_l (Env.update rho x v') e
+    let v' = eval rho e' in
+    eval (Env.update rho x v') e
   | Ast.Expr.Call (f, call_l) ->
     let find_f_func = (fun f_def -> let (f', _, _) = f_def in (f' = f)) in
     (match (List.find_opt find_f_func fundef_l) with
@@ -169,7 +168,8 @@ let rec eval (fundef_l : Ast.Script.fundef list) (rho : Env.t) (e : Ast.Expr.t) 
   DO STEPS IN THE DOC
   In the challenge interpreter, you can keep function definitions as parts of the environment, as opposed to doing fundef_l like I did in the core problem (that’s one way to do the challenge problem)
 
-(*  eval e = v, where _ ├ e ↓ v.
+(*  eval func_env e = v, where _ ├ e ↓ v. func_env is an environment containing all the
+ *  function definitions in the script, while e is the expression in the script.
  *
  *  Because later declarations shadow earlier ones, this is the `eval`
  *  function that is visible to clients.
