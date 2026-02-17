@@ -4,8 +4,10 @@ Implementing OCaml- (a subset of OCaml) and writing an interpreter for it.
 Project 1 for Program Analysis.
 
 # Contributors
-Caroline Tracy: [CarolineTracy](https://github.com/CarolineTracy)
+Team Name: The A Team
 
-Saakshi Challa
+Caroline Tracy: Implementor [CarolineTracy](https://github.com/CarolineTracy)
 
-Siiso Daauud
+Saakshi Challa : Tester
+
+Siiso Daauud : Designer

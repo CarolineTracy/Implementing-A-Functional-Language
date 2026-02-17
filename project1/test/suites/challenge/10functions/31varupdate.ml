@@ -1,0 +1,12 @@
+(*!tests!
+* 
+* {"output": ["6"]}
+*
+*
+*)
+
+let x = 5 in 
+let x = x + 1 in 
+x ;; 
+
+
