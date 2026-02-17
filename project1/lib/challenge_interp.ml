@@ -176,7 +176,7 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
     let v' = eval rho e' in
     eval (Env.update rho x v') e
   | Ast.Expr.Call (f', call_l) ->
-    match f' with
+    (match f' with
     | Ast.Expr.Var f -> 
       let (param_l, func_e, bound_so_far) = Env.lookup rho f false in
       (match (List.length param_l) with
@@ -190,39 +190,39 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
           eval new_rho func_e
         | _ -> raise(TypeError "Function called with too many arguments.")
         )
-      | _ ->
+      | _ -> 
+        (match (List.length call_l) with
+        | 0 -> Value.V_Fun (param_l, func_e, bound_so_far)
+        | _ -> 
+          let curr_param = List.hd param_l in
+          let param_l_minus_1 = List.tl param_l in
+          let curr_call = List.hd call_l in
+          let call_l_minus_1 = List.tl call_l in
+          let eval_curr_call = eval rho curr_call in
+          let _ = Env.update rho f (param_l_minus_1, func_e, ((curr_param, eval_curr_call) :: bound_so_far)) in
+          eval rho (Ast.Expr.Call (f, call_l_minus_1))
+        )
       )
-
     | Ast.Expr.Fun (param_l', func_e') ->
+      MAYBE PASTE IN STUFF FROM ABOVE?
 
     | _ -> (match (eval rho f') with
             | Ast.Expr.Fun (param_l'', func_e'') ->
 
             | _ -> raise(TypeError "Function call expression is not well typed.")
            )
+    )
 
     
 
+      When a function is fully evaluated, its bound_so_far (that records the values bound to the parameters so far) goes back to empty, and its parameters equal the vars in bound_so_far
+      I SHOULD EVALUATE IT LIKE THIS: f 3 4 5 6 IS ((((f 3) 4) 5) 6). SO LIKE EVALUATE IT ONE BY ONE. 
 
-
-      (match ((List.length param_l) = (List.length call_l)) with
-      | true -> 
-        let fold_func = (fun curr_env param' call' -> let v = eval fundef_l curr_env call' in Env.update curr_env param' v) in
-        eval fundef_l (List.fold_left2 fold_func Env.empty param_l call_l) e'
-      | false -> raise(TypeError "Function called with the wrong number of arguments.")
-
-      BASICALLY DELETE THE STUFF ABOVE
-      NOTE THAT CALL IS JUST FOR NON-ANONYMOUS FUNCTIONS
-      Maybe when a function is fully evaluated, its bound_so_far (that records the values bound to the parameters so far) goes back to empty, and its parameters equal the vars in bound_so_far
-      MAYBE I SHOULD EVALUATE IT LIKE THIS: f 3 4 5 6 IS ((((f 3) 4) 5) 6). SO LIKE EVALUATE IT ONE BY ONE. 
-      )
-    | None -> raise(UndefinedFunction f)
-    )
   | Ast.Expr.Fun (param_l, e') ->
     PROBABLY WILL BE SIMILAR TO CALL EXPRESSIONS?
     NOTE THAT E IS BODY
     For anonymous functions: since they can be defined in the expression part of the script, you should make sure that variables that are not parameters are already defined BEFORE the anonymous function is defined. MAYBE DO THIS USING NO_UNBOUND_VAR FUNCTION. If thats not the case, then automatically raise unboundvariable error. Maybe you can do this by doing lookup for all the varialbes in the body of the anonymous function? or maybe there's an easier way (figure that out)
-    Maybe when a function is fully evaluated, its bound_so_far (that records the values bound to the parameters so far) goes back to empty, and its parameters equal the vars in bound_so_far
+    When a function is fully evaluated, its bound_so_far (that records the values bound to the parameters so far) goes back to empty, and its parameters equal the vars in bound_so_far
   
   
   DO STEPS IN THE DOC
