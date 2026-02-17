@@ -204,6 +204,7 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
         )
       )
     | Ast.Expr.Fun (param_l', func_e') ->
+      HOW DO I STORE THE ADDITIONAL DATA THAT THE PARAMETERS SHOULD BE ASSIGNED CERTAIN VALUES?
       MAYBE PASTE IN STUFF FROM ABOVE?
 
     | _ -> (match (eval rho f') with
