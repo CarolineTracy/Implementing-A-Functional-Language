@@ -267,6 +267,5 @@ let exec (p : Ast.Script.t) : Value.t =
   eval fundef_l e
     
 
-  DOES from_list DO A GOOD JOB OF CREATING AN ENVRIONMENT WITH ONLY THE FUNCTION DEFINITIONS?
 
   ADD ALL TESTS IN DOC
