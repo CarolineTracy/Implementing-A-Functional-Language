@@ -34,7 +34,7 @@ module Value = struct
     match v with
     | V_Int n -> Int.to_string n
     | V_Bool b -> Bool.to_string b
-    | V_Fun param_l e rho -> "function"
+    | V_Fun (_, _, _) -> "function"
 end
 
 (* Environments.  An environment is a finite map from identifiers to values.
@@ -67,13 +67,20 @@ module Env = struct
       ) rho0
     ) rho1
 
-  (*  If x is in ρ, lookup ρ x = ρ(x). If x is not in ρ, lookup ρ x raises an UnboundVariable error.
+  (*  If x is in ρ, lookup ρ x b = ρ(x). 
+   *  If b = true, then x is a variable. If b = false, then x is a function name.
+   *  If x is not in ρ and b is true (which means x is a variable), lookup ρ x raises an UnboundVariable error.
+   *  If x is not in ρ and b is false (which means x is a function name), lookup ρ x raises an UndefinedFunction error.
    *)
-  let lookup (rho : t) (x : Ast.Id.t) : Value.t = 
+  let lookup (rho : t) (x : Ast.Id.t) (b : bool) : Value.t = 
     match (List.assoc_opt x rho) with
     | Some Value.V_Bool b -> Value.V_Bool b
     | Some Value.V_Int n -> Value.V_Int n
-    | None -> raise(UnboundVariable x)
+    | Some Value.V_Fun (param_l, e, rho0) -> Value.V_Fun (param_l, e, rho0)
+    | None -> (match b with
+              | true -> raise(UnboundVariable x)
+              | false -> raise(UndefinedFunction x)
+              )
 
   (*  update ρ x v = ρ{x → v}.
    *)
@@ -81,6 +88,33 @@ module Env = struct
     (x, v) :: List.remove_assoc x rho
 
 end
+
+(*  func_body is the body of a given function, param_l is a list consisting of that function's parameters, and rho is the current 
+ *  environment when that function was declared. 
+ *  If all variables in e are either in rho or in param_l, then no_unbound_var rho param_l e = true. 
+ *  If there is at least one variable in e that is not in rho and not in param_l, then no_unbound_var rho param_l e raises an UnboundVariable error.
+ *)
+let rec no_unbound_var (rho : Env.t) (param_l : Ast.Id.t list) (func_body : Ast.Expr.t) : bool =
+  match func_body with
+  | Ast.Expr.Var x -> 
+    (match (List.mem x param_l) with
+    | true -> true
+    | false -> (let _ = (Env.lookup rho x true) in
+               true
+              )
+    )
+  | Ast.Expr.Num _ -> true
+  | Ast.Expr.Bool _ -> true
+  | Ast.Expr.Unop (_, e) -> (no_unbound_var rho param_l e)
+  | Ast.Expr.Binop (_, e, e') -> (no_unbound_var rho param_l e) && (no_unbound_var rho param_l e')
+  | Ast.Expr.If (e, e', e'') -> (no_unbound_var rho param_l e) && (no_unbound_var rho param_l e') && (no_unbound_var rho param_l e'')
+  | Ast.Expr.Let (_, e', e) -> (no_unbound_var rho param_l e') && (no_unbound_var rho param_l e)
+  | Ast.Expr.Call (_, call_l) -> 
+    let fold_func = (fun acc e0 -> acc && (no_unbound_var rho param_l e0)) in
+    List.fold_left fold_func true call_l
+  | Ast.Expr.Fun (anon_param_l, e) ->
+    let all_params_l = param_l @ anon_param_l in
+    no_unbound_var rho all_params_l e
 
 (*  binop op v v' = v'', where v'' is the result of applying the semantic
  *  denotation of `op` to `v` and `v''`.
@@ -121,7 +155,7 @@ let unop (op : Ast.Expr.unop) (v : Value.t) : Value.t =
  *)
 let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
   match e with
-  | Ast.Expr.Var x -> Env.lookup rho x
+  | Ast.Expr.Var x -> Env.lookup rho x true
   | Ast.Expr.Num n -> Value.V_Int n
   | Ast.Expr.Bool b -> Value.V_Bool b
   | Ast.Expr.Unop (op, e) ->
@@ -161,39 +195,34 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
   | Ast.Expr.Fun (param_l, e) ->
     PROBABLY WILL BE SIMILAR TO CALL EXPRESSIONS?
     NOTE THAT E IS BODY
-    For anonymous functions: since they can be defined in the expression part of the script, you should make sure that variables that are not parameters are already defined BEFORE the anonymous function is defined. If thats not the case, then automatically raise unboundvariable error. Maybe you can do this by doing lookup for all the varialbes in the body of the anonymous function? or maybe there's an easier way (figure that out)
+    For anonymous functions: since they can be defined in the expression part of the script, you should make sure that variables that are not parameters are already defined BEFORE the anonymous function is defined. MAYBE DO THIS USING NO_UNBOUND_VAR FUNCTION. If thats not the case, then automatically raise unboundvariable error. Maybe you can do this by doing lookup for all the varialbes in the body of the anonymous function? or maybe there's an easier way (figure that out)
     Maybe when a function is fully evaluated, its environment (that records the values bound to the parameters so far) goes back to empty
   
   
   DO STEPS IN THE DOC
   In the challenge interpreter, you can keep function definitions as parts of the environment, as opposed to doing fundef_l like I did in the core problem (that’s one way to do the challenge problem)
 
-(*  eval func_env e = v, where _ ├ e ↓ v. func_env is an environment containing all the
+(*  eval func_env e = v, where _ ├ e ↓ v. fundef_l is a list of all the 
  *  function definitions in the script, while e is the expression in the script.
  *
  *  Because later declarations shadow earlier ones, this is the `eval`
  *  function that is visible to clients.
  *)
-let eval (func_env : Env.t) (e : Ast.Expr.t) : Value.t =
+let eval (fundef_l : Ast.Script.fundef list) (e : Ast.Expr.t) : Value.t =
+  let map_func = (fun fundef0 -> let (name0, param_l0, e0) = fundef in (name0, (param_l0, e0, Env.empty))) in
+  let fundef_l_mapped = List.map map_func fundef_l in
+  let func_env = Env.from_list fundef_l_mapped in
   eval func_env e
 
 (* exec p = v, where `v` is the result of executing `p`.
  *)
 let exec (p : Ast.Script.t) : Value.t =
   let Pgm (fundef_l, e) = p in
-  let map_func = (fun fundef0 -> let (name0, param_l0, e0) = fundef in (name0, (param_l0, e0, Env.empty))) in
-  let fundef_l_mapped = List.map map_func fundef_l in
-  let func_env = Env.from_list fundef_l_mapped in
-  eval func_env e
+  let fold_func = (fun acc fundef0 -> let (_, param_l, e0) = fundef0 in acc && (no_unbound_var Env.empty param_l e0)) in
+  let _ = List.fold_left fold_func true fundef_l in
+  eval fundef_l e
     
 
   DOES from_list DO A GOOD JOB OF CREATING AN ENVRIONMENT WITH ONLY THE FUNCTION DEFINITIONS?
 
-  ADD unbound_var_check FUNCTION AND ALSO ADD THE FUN CASE TO IT!
-
-
-
-TESTS TO ADD:
-let a = 3 in let y = a + 1 in let a = 7 in y (Evaluates to 4)
-let a = 3 in let f = fun x → x + a in let a = 7 in f 1 (Evaluates to 4)
-let f = fun x -> x + a in let a = 7 in f 1 (Evaluates to UnboundVariable bc of a)
+  ADD ALL TESTS IN DOC
