@@ -34,7 +34,7 @@ module Value = struct
     match v with
     | V_Int n -> Int.to_string n
     | V_Bool b -> Bool.to_string b
-    | V_Fun (param_l e rho) -> "function"
+    | V_Fun param_l e rho -> "function"
 end
 
 (* Environments.  An environment is a finite map from identifiers to values.
@@ -161,7 +161,7 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
   | Ast.Expr.Fun (param_l, e) ->
     PROBABLY WILL BE SIMILAR TO CALL EXPRESSIONS?
     NOTE THAT E IS BODY
-    FOR ANONYMOUS FUNCTIONS: SINCE THESE CAN BE DECLARED IN THE EXPRESSION PART OF THE SCRIPT, 
+    For anonymous functions: since they can be defined in the expression part of the script, you should make sure that variables that are not parameters are already defined BEFORE the anonymous function is defined. If thats not the case, then automatically raise unboundvariable error. Maybe you can do this by doing lookup for all the varialbes in the body of the anonymous function? or maybe there's an easier way (figure that out)
     Maybe when a function is fully evaluated, its environment (that records the values bound to the parameters so far) goes back to empty
   
   
