@@ -82,6 +82,16 @@ module Env = struct
               | false -> raise(UndefinedFunction x)
               )
 
+  (*  If x is in ρ, in_env ρ x = true.
+   *  If x is not in ρ, in_env ρ x = false.
+   *)
+  let in_env (rho : t) (x : Ast.Id.t) : bool =
+    match (List.assoc_opt x rho) with
+    | Some Value.V_Bool _ -> true
+    | Some Value.V_Int _ -> true
+    | Some Value.V_Fun (_, _, _) -> true
+    | None -> false
+
   (*  update ρ x v = ρ{x → v}.
    *)
   let update (rho : t) (x : Ast.Id.t) (v : Value.t) : t =
@@ -204,6 +214,36 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
         )
       )
     | Ast.Expr.Fun (param_l', func_e') ->
+      (match (Env.in_env rho "anon") with
+      | true -> (param_l', func_e', bound_so_far) = Env.lookup rho "anon" false
+      | false -> let _ = Env.update rho "anon" (param_l', func_e', Env.empty) in
+                 (param_l', func_e', bound_so_far) = Env.lookup rho "anon" false
+      )
+      (match (List.length param_l') with
+      | 0 -> 
+        (match (List.length call_l) with
+        | 0 ->
+          let (params, _) = List.split bound_so_far in
+          let _ = Env.update rho f (params, func_e, []) in
+          let func_rho = Env.from_list bound_so_far in
+          let new_rho = Env.join rho func_rho in
+          eval new_rho func_e'
+        | _ -> raise(TypeError "Function called with too many arguments.")
+        )
+      | _ -> 
+        (match (List.length call_l) with
+        | 0 -> Value.V_Fun (param_l', func_e', bound_so_far)
+        | _ -> 
+          let curr_param = List.hd param_l' in
+          let param_l_minus_1 = List.tl param_l' in
+          let curr_call = List.hd call_l in
+          let call_l_minus_1 = List.tl call_l in
+          let eval_curr_call = eval rho curr_call in
+          let _ = Env.update rho f (param_l_minus_1, func_e', ((curr_param, eval_curr_call) :: bound_so_far)) in
+          eval rho (Ast.Expr.Call (f, call_l_minus_1))
+        )
+      )
+
       DO SIMILAR THING TO ABOVE. HOWEVER INSTEAD OF ADDING PARAM BINDINGS TO BOUND_SO_FAR, JUST ADD THEM TO RHO. THIS IS BC RECURSION MAKES IT SO WE'RE ONLY LEFT WITH THE ANONYMOUS FUNCTION AND FROM HERE ON OUT EVERYTHING IS WITHIN THE ANONYMOUS FUNCTION SO WE DON'T HAVE TO WORRY ABOUT PARAMETER BINDINGS AFFECTING ANYTHING
 
       HOW DO I STORE THE ADDITIONAL DATA THAT THE PARAMETERS SHOULD BE ASSIGNED CERTAIN VALUES?
