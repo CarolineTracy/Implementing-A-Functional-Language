@@ -63,6 +63,32 @@ module Env = struct
     (x, v) :: List.remove_assoc x rho
 end
 
+(*  func_body is the body of a given function, param_l is a list consisting of that function's parameters, and rho is the current 
+ *  environment when that function was declared. 
+ *  If all variables in e are either in rho or in param_l, then no_unbound_var rho param_l e = true. 
+ *  If there is at least one variable in e that is not in rho and not in param_l, then no_unbound_var rho param_l e raises an UnboundVariable error.
+ *)
+let rec no_unbound_var (rho : Env.t) (param_l : Ast.Id.t list) (func_body : Ast.Expr.t) : Value.t.V_Bool =
+  match func_body with
+  | Ast.Expr.Var x -> 
+    let find_opt_func = (fun x0 -> x0 = x)
+    (match (List.find_opt find_opt_func param_l) with
+    | Some Ast.Expr.Var y -> true
+    | None -> (match (Env.lookup rho x) with
+              | Value.V_Bool b -> true
+              | Value.V_Int n -> true
+              )
+    )
+  | Ast.Expr.Num n -> true
+  | Ast.Expr.Bool b -> true
+  | Ast.Expr.Unop (op, e) -> (no_unbound_var rho param_l e)
+  | Ast.Expr.Binop (op, e, e') -> (no_unbound_var rho param_l e) && (no_unbound_var rho param_l e')
+  | Ast.Expr.If (e, e', e'') -> (no_unbound_var rho param_l e) && (no_unbound_var rho param_l e') && (no_unbound_var rho param_l e'')
+  | Ast.Expr.Let (x, e', e) -> (no_unbound_var rho param_l e') && (no_unbound_var rho param_l e)
+  | Ast.Expr.Call (f, call_l) -> 
+    let fold_func = (fun acc e0 -> acc && (no_unbound_var rho param_l e0)) in
+    fold_left fold_func true call_l
+
 (*  binop op v v' = v'', where v'' is the result of applying the semantic
  *  denotation of `op` to `v` and `v''`.
  *)
@@ -150,4 +176,6 @@ let eval (fundef_l : Ast.Script.fundef list) (e : Ast.Expr.t) : Value.t =
  *)
 let exec (p : Ast.Script.t) : Value.t =
   let Pgm (fundef_l, e) = p in
-  eval fundef_l e
+  let fold_func = (fun acc fundef0 -> let (funname, param_l, e0) = fundef0 in acc && (no_unbound_var Env.empty param_l e0)) in
+  match (fold_left fold_func true fundef_l) with
+  | true -> eval fundef_l e

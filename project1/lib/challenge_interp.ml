@@ -189,6 +189,8 @@ let exec (p : Ast.Script.t) : Value.t =
 
   DOES from_list DO A GOOD JOB OF CREATING AN ENVRIONMENT WITH ONLY THE FUNCTION DEFINITIONS?
 
+  ADD unbound_var_check FUNCTION AND ALSO ADD THE FUN CASE TO IT!
+
 
 
 TESTS TO ADD:
