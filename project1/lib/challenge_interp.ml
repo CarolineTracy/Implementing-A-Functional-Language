@@ -236,9 +236,13 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
       When a function is fully evaluated, its bound_so_far (that records the values bound to the parameters so far) goes back to empty, and its parameters equal the vars in bound_so_far
       I SHOULD EVALUATE IT LIKE THIS: f 3 4 5 6 IS ((((f 3) 4) 5) 6). SO LIKE EVALUATE IT ONE BY ONE. 
 
-  | Ast.Expr.Fun (param_l, e') ->
+  | Ast.Expr.Fun (param_l, e') -> Value.V_Fun ()
+
+    FIND A WAY TO GET THE BOUND_SO_FAR...
+
+    Evaluate with rho? I don't think so
     PROBABLY WILL BE SIMILAR TO CALL EXPRESSIONS?
-    NOTE THAT E IS BODY
+    NOTE THAT E' IS BODY
     For anonymous functions: since they can be defined in the expression part of the script, you should make sure that variables that are not parameters are already defined BEFORE the anonymous function is defined. MAYBE DO THIS USING NO_UNBOUND_VAR FUNCTION. If thats not the case, then automatically raise unboundvariable error. Maybe you can do this by doing lookup for all the varialbes in the body of the anonymous function? or maybe there's an easier way (figure that out)
     When a function is fully evaluated, its bound_so_far (that records the values bound to the parameters so far) goes back to empty, and its parameters equal the vars in bound_so_far
   
