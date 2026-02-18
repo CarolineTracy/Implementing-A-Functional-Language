@@ -67,20 +67,14 @@ module Env = struct
       ) rho0
     ) rho1
 
-  (*  If x is in ρ, lookup ρ x b = ρ(x). 
-   *  If b = true, then x is a variable. If b = false, then x is a function name.
-   *  If x is not in ρ and b is true (which means x is a variable), lookup ρ x raises an UnboundVariable error.
-   *  If x is not in ρ and b is false (which means x is a function name), lookup ρ x raises an UndefinedFunction error.
+  (*  If x is in ρ, lookup ρ x = ρ(x). If x is not in ρ, lookup ρ x raises an UnboundVariable error.
    *)
-  let lookup (rho : t) (x : Ast.Id.t) (b : bool) : Value.t = 
+  let lookup (rho : t) (x : Ast.Id.t) : Value.t = 
     match (List.assoc_opt x rho) with
     | Some Value.V_Bool b -> Value.V_Bool b
     | Some Value.V_Int n -> Value.V_Int n
     | Some Value.V_Fun (param_l, e, bound_so_far) -> Value.V_Fun (param_l, e, bound_so_far)
-    | None -> (match b with
-              | true -> raise(UnboundVariable x)
-              | false -> raise(UndefinedFunction x)
-              )
+    | None -> raise(UnboundVariable x)
 
   (*  update ρ x v = ρ{x → v}.
    *)
@@ -128,7 +122,7 @@ let unop (op : Ast.Expr.unop) (v : Value.t) : Value.t =
  *)
 let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
   match e with
-  | Ast.Expr.Var x -> Env.lookup rho x true
+  | Ast.Expr.Var x -> Env.lookup rho x
   | Ast.Expr.Num n -> Value.V_Int n
   | Ast.Expr.Bool b -> Value.V_Bool b
   | Ast.Expr.Unop (op, e) ->
@@ -151,7 +145,7 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
   | Ast.Expr.Call (f', call_l) ->
     (match f' with
     | Ast.Expr.Var f -> 
-      (match (Env.lookup rho f false) with
+      (match (Env.lookup rho f) with
       | Value.V_Bool _ -> raise(TypeError "Function definition stored incorrectly")
       | Value.V_Int _ -> raise(TypeError "Function definition stored incorrectly")
       | Value.V_Fun (param_l, func_e, bound_so_far) ->
