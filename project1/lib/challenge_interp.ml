@@ -161,9 +161,9 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
           | 0 ->
             let (params, _) = List.split bound_so_far in
             let func_def' = Value.V_Fun (params, func_e, []) in
-            let _ = Env.update rho f func_def' in
+            let updated_rho = Env.update rho f func_def' in
             let func_rho = Env.from_list bound_so_far in
-            let new_rho = Env.join rho func_rho in
+            let new_rho = Env.join updated_rho func_rho in
             eval new_rho func_e
           | _ -> raise(TypeError "Function called with too many arguments.")
           )
@@ -177,8 +177,8 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
             let call_l_minus_1 = List.tl call_l in
             let eval_curr_call = eval rho curr_call in
             let func_in_env = Value.V_Fun (param_l_minus_1, func_e, ((curr_param, eval_curr_call) :: bound_so_far)) in
-            let _ = Env.update rho f func_in_env in
-            eval rho (Ast.Expr.Call (f', call_l_minus_1))
+            let new_rho = Env.update rho f func_in_env in
+            eval new_rho (Ast.Expr.Call (f', call_l_minus_1))
           )
         )
       )
@@ -202,8 +202,8 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
                   let curr_call = List.hd call_l in
                   let call_l_minus_1 = List.tl call_l in
                   let eval_curr_call = eval rho curr_call in
-                  let _ = Env.update rho curr_param eval_curr_call in
-                  eval rho (Ast.Expr.Call (Ast.Expr.Fun (param_l_minus_1, func_e'), call_l_minus_1))
+                  let new_rho = Env.update rho curr_param eval_curr_call in
+                  eval new_rho (Ast.Expr.Call (Ast.Expr.Fun (param_l_minus_1, func_e'), call_l_minus_1))
                 )
               )
             | _ -> raise(TypeError "Function call expression is not well typed.")
