@@ -215,7 +215,7 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
     Evaluate with rho? I don't think so
     PROBABLY WILL BE SIMILAR TO CALL EXPRESSIONS?
     NOTE THAT E' IS BODY
-    For anonymous functions: since they can be defined in the expression part of the script, you should make sure that variables that are not parameters are already defined BEFORE the anonymous function is defined. MAYBE DO THIS USING NO_UNBOUND_VAR FUNCTION. If thats not the case, then automatically raise unboundvariable error. Maybe you can do this by doing lookup for all the varialbes in the body of the anonymous function? or maybe there's an easier way (figure that out)
+    DON'T NEED TO DO THIS ACCORDING TO DANNER!! For anonymous functions: since they can be defined in the expression part of the script, you should make sure that variables that are not parameters are already defined BEFORE the anonymous function is defined. MAYBE DO THIS USING NO_UNBOUND_VAR FUNCTION. If thats not the case, then automatically raise unboundvariable error. Maybe you can do this by doing lookup for all the varialbes in the body of the anonymous function? or maybe there's an easier way (figure that out)
     When a function is fully evaluated, its bound_so_far (that records the values bound to the parameters so far) goes back to empty, and its parameters equal the vars in bound_so_far
   
   
@@ -238,9 +238,10 @@ let eval (fundef_l : Ast.Script.fundef list) (e : Ast.Expr.t) : Value.t =
  *)
 let exec (p : Ast.Script.t) : Value.t =
   let Pgm (fundef_l, e) = p in
-  let fold_func = (fun acc fundef0 -> let (_, param_l, e0) = fundef0 in acc && (no_unbound_var Env.empty param_l e0)) in
-  let _ = List.fold_left fold_func true fundef_l in
-  eval fundef_l e
+  let map_func = (fun fundef0 -> let (name0, param_l0, e0) = fundef in (name0, (param_l0, e0, Env.empty))) in
+  let fundef_l_mapped = List.map map_func fundef_l in
+  let func_env = Env.from_list fundef_l_mapped in
+  eval func_env e
     
 
 
