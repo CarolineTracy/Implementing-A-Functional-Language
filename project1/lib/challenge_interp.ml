@@ -210,7 +210,9 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
 
   | Ast.Expr.Fun (param_l, e') -> Value.V_Fun ()
 
-    FIND A WAY TO GET THE BOUND_SO_FAR... maybe search the param_l list and then do lookup? but i'd have to do a variation of the lookup function that doesn't return an error
+  LOOK AT DANNERS NOTES!!
+
+    FIND A WAY TO GET THE BOUND_SO_FAR... maybe search the param_l list and then do lookup? but i'd have to do a variation of the lookup function that doesn't return an error. maybe see what danner said
 
     Evaluate with rho? I don't think so
     PROBABLY WILL BE SIMILAR TO CALL EXPRESSIONS?
