@@ -151,100 +151,80 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
   | Ast.Expr.Call (f', call_l) ->
     (match f' with
     | Ast.Expr.Var f -> 
-      let (param_l, func_e, bound_so_far) = Env.lookup rho f false in
-      (match (List.length param_l) with
-      | 0 -> 
-        (match (List.length call_l) with
-        | 0 ->
-          let (params, _) = List.split bound_so_far in
-          let _ = Env.update rho f (params, func_e, []) in
-          let func_rho = Env.from_list bound_so_far in
-          let new_rho = Env.join rho func_rho in
-          eval new_rho func_e
-        | _ -> raise(TypeError "Function called with too many arguments.")
-        )
-      | _ -> 
-        (match (List.length call_l) with
-        | 0 -> Value.V_Fun (param_l, func_e, bound_so_far)
+      (match (Env.lookup rho f false) with
+      | Value.V_Bool _ -> raise(TypeError "Function definition stored incorrectly")
+      | Value.V_Int _ -> raise(TypeError "Function definition stored incorrectly")
+      | Value.V_Fun (param_l, func_e, bound_so_far) ->
+        (match (List.length param_l) with
+        | 0 -> 
+          (match (List.length call_l) with
+          | 0 ->
+            let (params, _) = List.split bound_so_far in
+            let func_def' = Value.V_Fun (params, func_e, []) in
+            let _ = Env.update rho f func_def' in
+            let func_rho = Env.from_list bound_so_far in
+            let new_rho = Env.join rho func_rho in
+            eval new_rho func_e
+          | _ -> raise(TypeError "Function called with too many arguments.")
+          )
         | _ -> 
-          let curr_param = List.hd param_l in
-          let param_l_minus_1 = List.tl param_l in
-          let curr_call = List.hd call_l in
-          let call_l_minus_1 = List.tl call_l in
-          let eval_curr_call = eval rho curr_call in
-          let _ = Env.update rho f (param_l_minus_1, func_e, ((curr_param, eval_curr_call) :: bound_so_far)) in
-          eval rho (Ast.Expr.Call (f, call_l_minus_1))
+          (match (List.length call_l) with
+          | 0 -> Value.V_Fun (param_l, func_e, bound_so_far)
+          | _ -> 
+            let curr_param = List.hd param_l in
+            let param_l_minus_1 = List.tl param_l in
+            let curr_call = List.hd call_l in
+            let call_l_minus_1 = List.tl call_l in
+            let eval_curr_call = eval rho curr_call in
+            let func_in_env = Value.V_Fun (param_l_minus_1, func_e, ((curr_param, eval_curr_call) :: bound_so_far)) in
+            let _ = Env.update rho f func_in_env in
+            eval rho (Ast.Expr.Call (f', call_l_minus_1))
+          )
         )
       )
-    | Ast.Expr y -> (match (eval rho y) with
-                    | Value.V_Fun (param_l', func_e', bound_so_far') ->
-                      (match (List.length param_l') with
-                      | 0 -> 
-                        (match (List.length call_l) with
-                        | 0 ->
-                          let func_rho = Env.from_list bound_so_far' in
-                          let new_rho = Env.join rho func_rho in
-                          eval new_rho func_e'
-                        | _ -> raise(TypeError "Function called with too many arguments.")
-                        )
-                      | _ -> 
-                        (match (List.length call_l) with
-                        | 0 -> Value.V_Fun (param_l', func_e', bound_so_far)
-                        | _ -> 
-                          let curr_param = List.hd param_l' in
-                          let param_l_minus_1 = List.tl param_l' in
-                          let curr_call = List.hd call_l in
-                          let call_l_minus_1 = List.tl call_l in
-                          let eval_curr_call = eval rho curr_call in
-                          let _ = Env.update rho curr_param eval_curr_call in
-                          eval rho (Ast.Expr.Call (Ast.Expr.Fun (param_l_minus_1, func_e'), call_l_minus_1))
-                        )
-                      )
-                    | _ -> raise(TypeError "Function call expression is not well typed.")
-                    )
+    | _ -> (match (eval rho f') with
+            | Value.V_Fun (param_l', func_e', bound_so_far') ->
+              (match (List.length param_l') with
+              | 0 -> 
+                (match (List.length call_l) with
+                | 0 ->
+                  let func_rho = Env.from_list bound_so_far' in
+                  let new_rho = Env.join rho func_rho in
+                  eval new_rho func_e'
+                | _ -> raise(TypeError "Function called with too many arguments.")
+                )
+              | _ -> 
+                (match (List.length call_l) with
+                | 0 -> Value.V_Fun (param_l', func_e', bound_so_far')
+                | _ -> 
+                  let curr_param = List.hd param_l' in
+                  let param_l_minus_1 = List.tl param_l' in
+                  let curr_call = List.hd call_l in
+                  let call_l_minus_1 = List.tl call_l in
+                  let eval_curr_call = eval rho curr_call in
+                  let _ = Env.update rho curr_param eval_curr_call in
+                  eval rho (Ast.Expr.Call (Ast.Expr.Fun (param_l_minus_1, func_e'), call_l_minus_1))
+                )
+              )
+            | _ -> raise(TypeError "Function call expression is not well typed.")
+            )
     )
+  | Ast.Expr.Fun (param_l, e') -> Value.V_Fun (param_l, e', rho)
 
-    
-
-      I SHOULD EVALUATE IT LIKE THIS: f 3 4 5 6 IS ((((f 3) 4) 5) 6). SO LIKE EVALUATE IT ONE BY ONE. 
-
-  | Ast.Expr.Fun (param_l, e') -> Value.V_Fun ()
-
-  LOOK AT DANNERS NOTES!!
-
-    FIND A WAY TO GET THE BOUND_SO_FAR... maybe search the param_l list and then do lookup? but i'd have to do a variation of the lookup function that doesn't return an error. maybe see what danner said
-
-    Evaluate with rho? I don't think so
-    PROBABLY WILL BE SIMILAR TO CALL EXPRESSIONS?
-    NOTE THAT E' IS BODY
-    DON'T NEED TO DO THIS ACCORDING TO DANNER!! For anonymous functions: since they can be defined in the expression part of the script, you should make sure that variables that are not parameters are already defined BEFORE the anonymous function is defined. MAYBE DO THIS USING NO_UNBOUND_VAR FUNCTION. If thats not the case, then automatically raise unboundvariable error. Maybe you can do this by doing lookup for all the varialbes in the body of the anonymous function? or maybe there's an easier way (figure that out)
-    When a function is fully evaluated, its bound_so_far (that records the values bound to the parameters so far) goes back to empty, and its parameters equal the vars in bound_so_far
-  
-  
-  DO STEPS IN THE DOC
-  In the challenge interpreter, you can keep function definitions as parts of the environment, as opposed to doing fundef_l like I did in the core problem (that’s one way to do the challenge problem)
-
-(*  eval func_env e = v, where _ ├ e ↓ v. fundef_l is a list of all the 
+(*  eval func_env e = v, where _ ├ e ↓ v. func_env is an environment containing all the 
  *  function definitions in the script, while e is the expression in the script.
  *
  *  Because later declarations shadow earlier ones, this is the `eval`
  *  function that is visible to clients.
  *)
-let eval (fundef_l : Ast.Script.fundef list) (e : Ast.Expr.t) : Value.t =
-  let map_func = (fun fundef0 -> let (name0, param_l0, e0) = fundef in (name0, (param_l0, e0, Env.empty))) in
-  let fundef_l_mapped = List.map map_func fundef_l in
-  let func_env = Env.from_list fundef_l_mapped in
+let eval (func_env : Env.t) (e : Ast.Expr.t) : Value.t =
   eval func_env e
 
 (* exec p = v, where `v` is the result of executing `p`.
  *)
 let exec (p : Ast.Script.t) : Value.t =
   let Pgm (fundef_l, e) = p in
-  let map_func = (fun fundef0 -> let (name0, param_l0, e0) = fundef in (name0, (param_l0, e0, Env.empty))) in
+  let map_func = (fun fundef0 -> let (name0, param_l0, e0) = fundef0 in let func_in_env = Value.V_Fun (param_l0, e0, Env.empty) in (name0, func_in_env)) in
   let fundef_l_mapped = List.map map_func fundef_l in
   let func_env = Env.from_list fundef_l_mapped in
   eval func_env e
-    
-
-
-  ADD ALL TESTS IN DOC
