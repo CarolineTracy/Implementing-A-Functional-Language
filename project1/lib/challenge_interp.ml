@@ -153,12 +153,8 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
         | 0 -> 
           (match (List.length call_l) with
           | 0 ->
-            let (params, _) = List.split bound_so_far in
-            let func_def' = Value.V_Fun (params, func_e, []) in
-            let updated_rho = Env.update rho f func_def' in
             let func_rho = Env.from_list bound_so_far in
-            let new_rho = Env.join updated_rho func_rho in
-            eval new_rho func_e
+            eval func_rho func_e
           | _ -> raise(TypeError "Function called with too many arguments.")
           )
         | _ -> 
@@ -183,8 +179,7 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
                 (match (List.length call_l) with
                 | 0 ->
                   let func_rho = Env.from_list bound_so_far' in
-                  let new_rho = Env.join rho func_rho in
-                  eval new_rho func_e'
+                  eval func_rho func_e'
                 | _ -> raise(TypeError "Function called with too many arguments.")
                 )
               | _ -> 
