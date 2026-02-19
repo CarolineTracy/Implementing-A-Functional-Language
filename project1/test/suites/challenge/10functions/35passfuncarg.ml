@@ -1,6 +1,6 @@
 (*!tests!
 *
-* {"output": ["4"]}
+* {"output": ["function"]}
 *
 *)
 let rec f = fun f -> 3 ;; 
