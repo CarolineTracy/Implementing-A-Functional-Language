@@ -1,7 +1,7 @@
 (*!tests!
 *
 *
-* { "exception": "UnboundVariable"}
+* {"output": ["11"]}
 *
 *)
 
