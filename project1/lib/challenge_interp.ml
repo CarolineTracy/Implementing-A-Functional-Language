@@ -223,9 +223,7 @@ let eval (start_env : Env.t) (e : Ast.Expr.t) : Value.t =
  *)
 let exec (p : Ast.Script.t) : Value.t =
   let Pgm (fundef_l, e) = p in
-  let all_funcs_env = Env.from_list fundef_l
-
-  let map_func = (fun fundef0 -> let (name0, param_l0, e0) = fundef0 in let vfun_in_env = Value.V_Fun (param_l0, e0, all_funcs_env) in (name0, vfun_in_env)) in
+  let map_func = (fun fundef0 -> let (name0, param_l0, e0) = fundef0 in let vfun_in_env = Value.V_Fun (param_l0, e0, Env.empty) in (name0, vfun_in_env)) in
   let fundef_l_mapped = List.map map_func fundef_l in
   let start_env = Env.from_list fundef_l_mapped in
   eval start_env e
