@@ -3,6 +3,5 @@
 * {"output": ["4"]}
 *
 *)
-let f = fun f -> 3 ;; 
+let rec f = fun f -> 3 ;; 
 fun x -> x + 1 ;; 
-
