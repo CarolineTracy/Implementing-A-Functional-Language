@@ -67,6 +67,12 @@ module Env = struct
       ) rho0
     ) rho1
 
+  (*  only_funcs ρ = ρ₀, where ρ₀ is an environment that contains 
+   *  all the elements of ρ whose value is type Value.V_Fun.
+   *)
+  let only_funcs (rho : t) : t =
+    List.filter (fun (_, value) -> match value with | Value.V_Bool _ -> false | Value.V_Int _ -> false | Value.V_Fun _ -> true) rho
+
   (*  If x is in ρ, lookup ρ x = ρ(x). If x is not in ρ, lookup ρ x raises an UnboundVariable error.
    *)
   let lookup (rho : t) (x : Ast.Id.t) : Value.t = 
@@ -153,8 +159,10 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
         | 0 -> 
           (match (List.length call_l) with
           | 0 ->
+            let only_func_defs = Env.only_funcs rho in
             let func_rho = Env.from_list bound_so_far in
-            eval func_rho func_e
+            let new_rho = Env.join only_func_defs func_rho in
+            eval new_rho func_e
           | _ -> raise(TypeError "Function called with too many arguments.")
           )
         | _ -> 
@@ -178,8 +186,10 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
               | 0 -> 
                 (match (List.length call_l) with
                 | 0 ->
+                  let only_func_defs = Env.only_funcs rho in
                   let func_rho = Env.from_list bound_so_far' in
-                  eval func_rho func_e'
+                  let new_rho = Env.join only_func_defs func_rho in
+                  eval new_rho func_e'
                 | _ -> raise(TypeError "Function called with too many arguments.")
                 )
               | _ -> 
@@ -200,20 +210,22 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
     )
   | Ast.Expr.Fun (param_l, e') -> Value.V_Fun (param_l, e', rho)
 
-(*  eval func_env e = v, where _ ├ e ↓ v. func_env is an environment containing all the 
+(*  eval start_env e = v, where _ ├ e ↓ v. start_env is an environment containing all the 
  *  function definitions in the script, while e is the expression in the script.
  *
  *  Because later declarations shadow earlier ones, this is the `eval`
  *  function that is visible to clients.
  *)
-let eval (func_env : Env.t) (e : Ast.Expr.t) : Value.t =
-  eval func_env e
+let eval (start_env : Env.t) (e : Ast.Expr.t) : Value.t =
+  eval start_env e
 
 (* exec p = v, where `v` is the result of executing `p`.
  *)
 let exec (p : Ast.Script.t) : Value.t =
   let Pgm (fundef_l, e) = p in
-  let map_func = (fun fundef0 -> let (name0, param_l0, e0) = fundef0 in let func_in_env = Value.V_Fun (param_l0, e0, Env.empty) in (name0, func_in_env)) in
+  let all_funcs_env = Env.from_list fundef_l
+
+  let map_func = (fun fundef0 -> let (name0, param_l0, e0) = fundef0 in let vfun_in_env = Value.V_Fun (param_l0, e0, all_funcs_env) in (name0, vfun_in_env)) in
   let fundef_l_mapped = List.map map_func fundef_l in
-  let func_env = Env.from_list fundef_l_mapped in
-  eval func_env e
+  let start_env = Env.from_list fundef_l_mapped in
+  eval start_env e
