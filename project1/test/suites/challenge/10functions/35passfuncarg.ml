@@ -1,6 +1,6 @@
 (*!tests!
 *
-* {"output: [4]"}
+* {"output": ["4"]}
 *
 *)
 let f = fun f -> 3 ;; 

@@ -1,6 +1,6 @@
 (*!tests!
 *
-* {"exception: [UnboundVariable]"}
+* { "exception": "UnboundVariable"}
 *
 *
 *)
