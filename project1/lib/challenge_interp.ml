@@ -157,16 +157,13 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
       | Value.V_Fun (param_l, func_e, bound_so_far) ->
         (match (List.length param_l) with
         | 0 -> 
+          let only_func_defs = Env.only_funcs rho in
+          let func_rho = Env.from_list bound_so_far in
+          let new_rho = Env.join only_func_defs func_rho in
           (match (List.length call_l) with
           | 0 ->
-            let only_func_defs = Env.only_funcs rho in
-            let func_rho = Env.from_list bound_so_far in
-            let new_rho = Env.join only_func_defs func_rho in
             eval new_rho func_e
           | _ -> 
-            let only_func_defs = Env.only_funcs rho in
-            let func_rho = Env.from_list bound_so_far in
-            let new_rho = Env.join only_func_defs func_rho in 
             let call_expr = Ast.Expr.Call (func_e, call_l) in
             eval new_rho call_expr
           )
@@ -189,16 +186,13 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
             | Value.V_Fun (param_l', func_e', bound_so_far') ->
               (match (List.length param_l') with
               | 0 -> 
+                let only_func_defs = Env.only_funcs rho in
+                let func_rho = Env.from_list bound_so_far' in
+                let new_rho = Env.join only_func_defs func_rho in
                 (match (List.length call_l) with
                 | 0 ->
-                  let only_func_defs = Env.only_funcs rho in
-                  let func_rho = Env.from_list bound_so_far' in
-                  let new_rho = Env.join only_func_defs func_rho in
                   eval new_rho func_e'
                 | _ -> 
-                  let only_func_defs = Env.only_funcs rho in
-                  let func_rho = Env.from_list bound_so_far' in
-                  let new_rho = Env.join only_func_defs func_rho in 
                   let call_expr = Ast.Expr.Call (func_e', call_l) in
                   eval new_rho call_expr
                 )
