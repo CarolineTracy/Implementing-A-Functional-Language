@@ -164,19 +164,12 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
             let new_rho = Env.join only_func_defs func_rho in
             eval new_rho func_e
           | _ -> 
-            (match func_e with
-            | Ast.Expr.Var _ -> raise(TypeError "Function called with too many arguments.")
-            | Ast.Expr.Num _ -> raise(TypeError "Function called with too many arguments.")
-            | Ast.Expr.Bool _ -> raise(TypeError "Function called with too many arguments.")
-            | Ast.Expr.Unop _ -> raise(TypeError "Function called with too many arguments.")
-            | Ast.Expr.Binop _ -> raise(TypeError "Function called with too many arguments.")
-            | Ast.Expr.If _ -> raise(TypeError "Function called with too many arguments.")
-            | Ast.Expr.Let _ -> raise(TypeError "Function called with too many arguments.")
-            | Ast.Expr.Call _ -> raise(TypeError "Function called with too many arguments.")
-            | Ast.Expr.Fun (param_l', func_e') -> func_e'
-            )
+            let only_func_defs = Env.only_funcs rho in
+            let func_rho = Env.from_list bound_so_far in
+            let new_rho = Env.join only_func_defs func_rho in 
+            let call_expr = Ast.Expr.Call (func_e, call_l) in
+            eval new_rho call_expr
           )
-        )
         | _ -> 
           (match (List.length call_l) with
           | 0 -> Value.V_Fun (param_l, func_e, bound_so_far)
