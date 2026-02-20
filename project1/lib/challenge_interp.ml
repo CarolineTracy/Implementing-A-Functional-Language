@@ -195,7 +195,12 @@ let rec eval (rho : Env.t) (e : Ast.Expr.t) : Value.t =
                   let func_rho = Env.from_list bound_so_far' in
                   let new_rho = Env.join only_func_defs func_rho in
                   eval new_rho func_e'
-                | _ -> raise(TypeError "Function called with too many arguments.")
+                | _ -> 
+                  let only_func_defs = Env.only_funcs rho in
+                  let func_rho = Env.from_list bound_so_far' in
+                  let new_rho = Env.join only_func_defs func_rho in 
+                  let call_expr = Ast.Expr.Call (func_e', call_l) in
+                  eval new_rho call_expr
                 )
               | _ -> 
                 (match (List.length call_l) with
