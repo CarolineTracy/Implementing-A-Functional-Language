@@ -6,8 +6,8 @@ Project 1 for Program Analysis.
 # Contributors
 Team Name: The A Team
 
-Caroline Tracy: Implementor [CarolineTracy](https://github.com/CarolineTracy)
+[Caroline Tracy](https://github.com/CarolineTracy): Implementor
 
-Saakshi Challa : Tester
+[Saakshi Challa](https://github.com/schalla1201) : Tester
 
-Siiso Daauud : Designer
+[Siiso Daauud](https://github.com/siisodaa) : Designer
